@@ -1,0 +1,5 @@
+node_modules
+mysql
+.vscode
+call_server
+clean_restart

@@ -1,0 +1,10 @@
+FROM node:18.16.0
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm ci
+RUN apt-get update && apt-get install -y wait-for-it
+
+EXPOSE 3000
