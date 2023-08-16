@@ -39,6 +39,25 @@ const retrievePeople = async () => {
   return people;
 };
 
+const getHealthStatusMsg = (port) => `Server up and running on port ${port}`;
+const getNotFoundPage = (path) => `<h1>404 - ${path} Page Not Found</h1>`;
+const get5xxError = (errMsg) =>
+  `<html><h1>500 Internal Server Error</h1><p>${errMsg}</p></html>`;
+
+const getListFromPeople = (people) => {
+  let li = "<ul>";
+
+  if (people && people.length) {
+    li = people.map(({ name }) => `<li>${name}</li>`).join("");
+  }
+
+  li += "</ul>";
+
+  return li;
+};
+
+const getFullPage = (list) => `<html><h1>Full Cycle Rocks!</h1>${list}</html>`;
+
 const app = express();
 
 app.use(express.json());
@@ -49,26 +68,30 @@ app.post("/register", async (req, res) => {
 
     const [people] = await retrievePeople();
 
-    let li = "";
-    if (people && people.length) {
-      li = people.map(({ name }) => `<li>${name}</li>`).join("");
-    }
-
-    let html = `<html><h1>Full Cycle Rocks!</h1><ul>${li}</ul></html>`;
+    let list = getListFromPeople(people);
+    let html = getFullPage(list);
 
     res.status(200).send(html);
   } catch (err) {
-    res
-      .status(500)
-      .send(
-        `<html><h1>500 Internal Server Error</h1><p>${err.message}</p></html>`
-      );
+    res.status(500).send(get5xxError(err.message));
   }
 });
 
-const healthCheckMsg = `Server up and running on port ${PORT}`;
-const notFoundPage = "<html><h1>404 - Page Not Found</h1></html>";
+app.get("/", async (_, res) => {
+  try {
+    const [people] = await retrievePeople();
 
-app.get("/health-check", (_, res) => res.status(200).send(healthCheckMsg));
-app.all("*", (_, res) => res.status(404).send(notFoundPage));
-app.listen(PORT, () => console.log(healthCheckMsg));
+    let list = getListFromPeople(people);
+    let html = getFullPage(list);
+
+    res.status(200).send(html);
+  } catch (err) {
+    res.status(500).send(get5xxError(err.message));
+  }
+});
+
+const healthStatusMsg = getHealthStatusMsg(PORT);
+
+app.get("/health-check", (_, res) => res.status(200).send(healthStatusMsg));
+app.all("*", (req, res) => res.status(404).send(getNotFoundPage(req.path)));
+app.listen(PORT, () => console.log(healthStatusMsg));

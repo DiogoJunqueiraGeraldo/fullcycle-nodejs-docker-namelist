@@ -6,7 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile.proxy
     container_name: proxy
-    image: diogojunqueirageraldo/fullcycle-nodejs-proxy
     networks:
       - shared-network
     depends_on:
@@ -16,12 +15,13 @@ services:
 
   server:
     container_name: server
-    image: diogojunqueirageraldo/fullcycle-nodejs-server
     build:
       context: .
-      dockerfile: Dockerfile.server
+      dockerfile: Dockerfile.dev.server
     restart: always
-    entrypoint: wait-for-it --strict -h database -p 3306 -t 60 -- npm start
+    entrypoint: wait-for-it --strict -h database -p 3306 -t 60 -- sh -c "npm install && chmod -R 777 node_modules && npm start"
+    volumes:
+      - ./:/app
     environment:
       - SERVER_PORT=3000
       - DB_HOST=database
